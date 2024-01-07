@@ -34,7 +34,7 @@
 #define PADDLE_LENGTH 50
 #define BALL_SIZE 15
 #define BALL_STEP BALL_SIZE /* how far ball travels per time step */
-#define WINDOW_NAME "91220001906_assignment_2"
+#define WINDOW_NAME "assignment_2"
 /**********************************************************************
 * Globals
 **********************************************************************/
