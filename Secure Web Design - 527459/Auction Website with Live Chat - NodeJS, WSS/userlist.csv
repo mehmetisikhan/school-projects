@@ -1,0 +1,3 @@
+name;family;phoneNumber;email;username;password;isadmin
+admin;admin;0;admin@gmail.com;admin;a;1
+user1;user;0;user@gmail.com;user1;a;0

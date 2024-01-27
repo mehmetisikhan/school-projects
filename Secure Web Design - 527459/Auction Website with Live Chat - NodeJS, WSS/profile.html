@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <title>91220001906_HW_4_Profile</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    .textingarea {
+      min-height: 75vh;
+      max-height: 75vh;
+      overflow-y: scroll;
+      display: flex;
+      flex-direction: column-reverse; /*https://stackoverflow.com/questions/18614301/keep-overflow-div-scrolled-to-bottom-unless-user-scrolls-up*/
+    }
+    .leftSideMessageBox {
+      margin-top: 10px;
+      padding-right: 55%;
+    }
+    .rightSideMessageBox {
+      margin-top: 10px;
+      right: 0px;
+      padding-left: 55%;
+    }
+    .leftSideMessageBox .card-footer, .card-header {
+      font-size: .8rem;
+      text-align: right;
+    }
+    .rightSideMessageBox .card-footer, .card-header{
+      font-size: .8rem;
+      text-align: left;
+    }
+    .navbar {
+      border-bottom: 5px solid black;
+    }
+    /*https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp*/
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .tableFixHead {
+      overflow: auto;
+      height: calc(100vh - 300px);
+    }
+    .tableFixHead thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1; 
+    }
+
+    /* Just common table stuff. Really. */
+    table {
+      border-collapse:
+      collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px 16px;
+    }
+    th {
+      background:#eee;
+    }
+  </style>
+</head>
+<body onload="initBegin()">
+  <script>
+    var json_data;
+    var websocket;
+
+    function updateUsers(){
+
+    }
+
+    function initBegin(){
+        $.getJSON("/getmessages", function(data) {
+        json_data = data;
+        console.log(json_data);
+        if(json_data.length > 0){
+          for(var i = 0 ; i < json_data.length ; i++){
+            if(json_data[i]['user']==$('.username_txt').html()){
+              $('#textareascroll').append(
+                '<div class="rightSideMessageBox">'+
+                  '<div class="card">'+
+                    '<div class="card-header">'+
+                      json_data[i]['user']+
+                    '</div>'+
+                    '<div class="card-body">'+
+                      json_data[i]['message']+
+                    '</div>'+
+                    '<div class="card-footer text-body-secondary">'+
+                      json_data[i]['date']+
+                    '</div>'+
+                  '</div>'+
+                '</div>'
+              );
+            }else{
+              $('#textareascroll').append(
+                '<div class="leftSideMessageBox">'+
+                  '<div class="card">'+
+                    '<div class="card-header">'+
+                      json_data[i]['user']+
+                    '</div>'+
+                    '<div class="card-body">'+
+                      json_data[i]['message']+
+                    '</div>'+
+                    '<div class="card-footer text-body-secondary">'+
+                      json_data[i]['date']+
+                    '</div>'+
+                  '</div>'+
+                '</div>'
+              );
+            }
+          }
+        }
+      });
+    }
+
+    function init() {
+      websocket = new WebSocket("ws://localhost:8080/");
+      websocket.onopen = function(evt) {
+            console.log(evt);
+      };
+      websocket.onmessage = function(event) {
+        json_data = JSON.parse(event.data);
+        if(json_data['type'] == "message"){
+          if(json_data['user']==$('.username_txt').html()){
+            $('#textareascroll').append(
+              '<div class="rightSideMessageBox">'+
+                '<div class="card">'+
+                  '<div class="card-header">'+
+                    json_data['user']+
+                  '</div>'+
+                  '<div class="card-body">'+
+                    json_data['message']+
+                  '</div>'+
+                  '<div class="card-footer text-body-secondary">'+
+                    json_data['date']+
+                  '</div>'+
+                '</div>'+
+              '</div>'
+            );
+          }else{
+            $('#textareascroll').append(
+              '<div class="leftSideMessageBox">'+
+                '<div class="card">'+
+                  '<div class="card-header">'+
+                    json_data['user']+
+                  '</div>'+
+                  '<div class="card-body">'+
+                    json_data['message']+
+                  '</div>'+
+                  '<div class="card-footer text-body-secondary">'+
+                    json_data['date']+
+                  '</div>'+
+                '</div>'+
+              '</div>'
+            );
+          }
+        }
+/*
+        if(json_data['type'] == "activeUsers"){
+          console.log(json_data);
+          let users = "";
+          json_data['users'].forEach(function (user){
+            users = users +
+            '<tr>'+
+              '<th scope="row">'+user+'</th>'+
+              '<td>5</td>'+
+            '</tr>'
+          });
+          //console.log(users);
+          $('#userList').html(users);
+        }
+*/
+        if(json_data['type'] == "activeAuction"){
+          if(json_data["auction"]["statu"] == "deactive" || json_data["auction"]["item"] == null || json_data["auction"]["item"] == undefined){
+            document.getElementById("makeOffer").disabled = true;
+            document.getElementById("newBid").disabled = true;
+          }else{
+            document.getElementById("makeOffer").disabled = false;
+            document.getElementById("newBid").disabled = false;
+          }
+          console.log(json_data);
+          $("#auctionItem").html(json_data["auction"]["item"]);
+          $('#winnerUser').html(json_data["auction"]["winner"]);
+          $('#winnerBid').html(json_data["auction"]["winnerBid"]);
+          let users = "";
+          json_data["auction"]["activeUsersIn"].forEach(function (user){
+            var userBid = 0;
+            json_data["auction"]["bids"].forEach(function (bids){
+              if(bids.user == user){
+                userBid = bids.bid;
+              }
+            });
+            users = users +
+            '<tr>'+
+              '<th scope="row">'+user+'</th>'+
+              '<td>'+userBid+'</td>'+
+            '</tr>';
+          });
+          //console.log(users);
+          $('#userList').html(users);
+        }
+      };
+    }
+
+    function sendfunc(){
+      if (websocket.readyState !== WebSocket.CLOSED) { //https://stackoverflow.com/questions/23369368/how-to-get-the-current-status-of-a-javascript-websocket-connection
+        websocket.send(JSON.stringify({type:"message", username:$('.username_txt').html(),message :document.getElementById("message").value}));
+        document.getElementById("message").value = "";
+      }else{
+        $('#myModal').modal('show');
+      }
+    }
+
+    function makeoffer(){
+      if (websocket.readyState !== WebSocket.CLOSED) { //https://stackoverflow.com/questions/23369368/how-to-get-the-current-status-of-a-javascript-websocket-connection
+        websocket.send(JSON.stringify({type:"newBid", username:$('.username_txt').html(), bid:document.getElementById("newBid").value}));
+        document.getElementById("newBid").value = "";
+      }else{
+        $('#myModal').modal('show');
+      }
+    }
+
+    window.addEventListener("load", init, false);
+  </script>
+  <header>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <span class="username_txt">##UserName##</span>
+            <i class="fa-solid fa-user"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          </ul>
+          <div class="admin-panel"></div>
+          <span class="navbar-text">
+            <a class="nav-link active" aria-current="page" href="/exit"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+          </span>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Connection Error</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Your connection has been suspended. Please refresh your connection.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="location.reload()">Reconnect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container mt-3">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card text-center">
+          <div class="card-header">
+            <h5>Auction for <b id="auctionItem"></b><h5>
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">You are bidding as: <b>##UserName##</b></h5>
+            <div class="row">
+              <div class="col-md-4 tableFixHead mt-2">
+                <table class="table table-striped table-responsive">
+                  <thead>
+                    <tr>
+                      <th colspan="2" scope="col">Online Users</th>
+                    </tr>
+                  </thead>
+                  <tbody id="userList">
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-md-8 mt-2">
+                <div class="alert alert-warning" role="alert">
+                  So Far Winner: <b id="winnerUser"></b>
+                </div>
+                <a id="winnerBid" style="font-size:10rem;"></a>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-body-secondary">
+            <form>
+              <div class="row">
+                <div class="col-md">
+                  <label for="newBid">Submit new bid:</label>
+                  <input type="number" class="form-control" id="newBid" placeholder="₺" name="newBid">
+                </div>
+                <div class="col-md-2">
+                  <button onclick="makeoffer()" type="button" class="w-100 h-100 btn btn-primary" id="makeOffer">Offer <i class="fa-solid fa-hand"></i></button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="textingarea">
+          <div class="row-md" id="textareascroll">
+            <!--
+            <div class="leftSideMessageBox">
+              <div class="card">
+                <div class="card-header">
+                  USERNAME
+                </div>
+                <div class="card-body">
+                    This is some text within a card body.This is some text within a card body.This is some text within a card body.This is some text within a card body.This is some text within a card body.This is some text within a card body.
+                </div>
+                <div class="card-footer text-body-secondary">
+                  2 days ago
+                </div>
+              </div>
+            </div>
+            <div class="rightSideMessageBox">
+              <div class="card">
+                <div class="card-header">
+                  USERNAME
+                </div>
+                <div class="card-body">
+                  This is some text within a card body.
+                </div>
+                <div class="card-footer text-body-secondary">
+                  2 days ago
+                </div>
+              </div>
+            </div>
+          -->
+          </div>
+        </div>
+        <div class="column mt-3">
+          <form>
+            <div class="row">
+              <div class="col-md">
+                <textarea class="form-control" aria-label="With textarea" id="message" name="message"></textarea>
+              </div>
+              <div class="col-md-2">
+                <button onclick="sendfunc()" type="button" class="w-100 h-100 btn btn-primary">Send <i class="fa-regular fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

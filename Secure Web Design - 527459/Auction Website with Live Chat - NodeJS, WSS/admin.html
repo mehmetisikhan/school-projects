@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <title>91220001906_HW_4_Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <style>
+    .textingarea {
+      min-height: 75vh;
+      max-height: 75vh;
+      overflow-y: scroll;
+      display: flex;
+      flex-direction: column-reverse; /*https://stackoverflow.com/questions/18614301/keep-overflow-div-scrolled-to-bottom-unless-user-scrolls-up*/
+    }
+    .leftSideMessageBox {
+      margin-top: 10px;
+      padding-right: 55%;
+    }
+    .rightSideMessageBox {
+      margin-top: 10px;
+      right: 0px;
+      padding-left: 55%;
+    }
+    .leftSideMessageBox .card-footer, .card-header {
+      font-size: .8rem;
+      text-align: right;
+    }
+    .rightSideMessageBox .card-footer, .card-header{
+      font-size: .8rem;
+      text-align: left;
+    }
+    .navbar {
+      border-bottom: 5px solid black;
+    }
+    /*https://www.w3schools.com/howto/howto_css_hide_arrow_number.asp*/
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .tableFixHead {
+      overflow: auto;
+      height: calc(100vh - 300px);
+    }
+    .tableFixHead thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1; 
+    }
+
+    /* Just common table stuff. Really. */
+    table {
+      border-collapse:
+      collapse;
+      width: 100%;
+    }
+    th, td {
+      padding: 8px 16px;
+    }
+    th {
+      background:#eee;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    var json_data;
+    var websocket;
+
+    function reStartAuction(){
+      if (websocket.readyState !== WebSocket.CLOSED) { //https://stackoverflow.com/questions/23369368/how-to-get-the-current-status-of-a-javascript-websocket-connection
+        websocket.send(JSON.stringify({type:"reStartAuction"}));
+        location.reload();
+      }else{
+        $('#myModal').modal('show');
+      }
+    }
+
+    function startAuction(){
+      if (websocket.readyState !== WebSocket.CLOSED && document.getElementById("auctionItemName").value != "") { //https://stackoverflow.com/questions/23369368/how-to-get-the-current-status-of-a-javascript-websocket-connection
+        websocket.send(JSON.stringify({type:"newAuction", auctionName:document.getElementById("auctionItemName").value}));
+        document.getElementById("auctionItemName").value = "";
+        location.reload();
+      }else{
+        $('#empty').modal('show');
+      }
+    }
+
+    function stopAuction(){
+      if (websocket.readyState !== WebSocket.CLOSED) { //https://stackoverflow.com/questions/23369368/how-to-get-the-current-status-of-a-javascript-websocket-connection
+        websocket.send(JSON.stringify({type:"stopAuction"}));
+        location.reload();
+      }else{
+        $('#myModal').modal('show');
+      }
+    }
+
+    function init() {
+      websocket = new WebSocket("ws://localhost:8080/");
+      websocket.onopen = function(evt) {
+            console.log(evt);
+      };
+      websocket.onmessage = function(event) {
+        json_data = JSON.parse(event.data);
+        if(json_data['type'] == "activeAuction"){
+          console.log(json_data["auction"]["item"]);
+          if(json_data["auction"]["item"] == null || json_data["auction"]["item"] == undefined){
+            $("#adminInfo").html('<div class="alert alert-danger" role="alert"><i class="fa-solid fa-xmark"></i><b class="p-5">No active Auction</b></div>');
+            $("#adminAction").html(
+              '<h2>Strat an Auction</h2>'+
+              '<form>'+
+                '<div class="row">'+
+                  '<div class="col-md">'+
+                    '<label for="auctionItemName">New Auction Item Name</label>'+
+                    '<input type="text" class="form-control" id="auctionItemName" placeholder="Item Name" name="auctionItemName" pattern="[A-Za-z\sığüşöçİĞÜŞÖÇ]+" minlength="2" required="">'+
+                  '</div>'+
+                  '<div class="col-md-2">'+
+                    '<button onclick="startAuction()" type="button" class="w-100 h-100 btn btn-outline-success"><i class="fa-solid fa-play"></i> Start</button>'+
+                  '</div>'+
+                '</div>'+
+              '</form>'
+            );
+          }
+          if(json_data["auction"]["item"] != null || json_data["auction"]["item"] != undefined){
+            $("#adminInfo").html('<div class="alert alert-success" role="alert"><i class="fa-solid fa-check"></i><b class="p-5">Active Auction : '+json_data["auction"]["item"]+'</b></div>');
+            $("#adminAction").html(
+              '<div class="col-md-3"><button onclick="stopAuction()" type="button" class="w-100 h-100 btn btn-outline-warning"><i class="fa-solid fa-pause"></i> Close</button></div>'
+            );
+          }
+          if((json_data["auction"]["item"] != null || json_data["auction"]["item"] != undefined) && json_data["auction"]["statu"] == "deactive"){
+            $("#adminInfo").html('<div class="alert alert-warning" role="alert"><i class="fa-solid fa-pause"></i><b class="p-5">Auction Closed : '+json_data["auction"]["item"]+'</b></div>');
+            $("#adminAction").html(
+              '<h2>Strat an Auction</h2>'+
+              '<form>'+
+                '<div class="row">'+
+                  '<div class="col-md">'+
+                    '<label for="auctionItemName">New Auction Item Name</label>'+
+                    '<input type="text" class="form-control" id="auctionItemName" placeholder="Item Name" name="auctionItemName" pattern="[A-Za-z\sığüşöçİĞÜŞÖÇ]+" minlength="2" required="">'+
+                  '</div>'+
+                  '<div class="col-md-2">'+
+                    '<button onclick="startAuction()" type="button" class="w-100 h-100 btn btn-outline-success"><i class="fa-solid fa-play"></i> Start</button>'+
+                  '</div>'+
+                '</div>'+
+              '</form>'
+            );
+          }
+        }
+      };
+    }
+
+    window.addEventListener("load", init, false);
+  </script>
+  <header>
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <span class="username_txt">##UserName##</span>
+            <i class="fa-solid fa-user"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          </ul>
+          <div class="admin-panel"></div>
+          <span class="navbar-text">
+            <a class="nav-link active" aria-current="page" href="/exit"><i class="fa-solid fa-right-from-bracket"></i>Logout</a>
+          </span>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Connection Error</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Your connection has been suspended. Please refresh your connection.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="location.reload()">Reconnect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="empty" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Connection Error</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Please Enter an Auction Name (2 chars)
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="column mt-4">
+      <div class="row" id="adminInfo">
+        <!--
+        <div class="alert alert-danger" role="alert">
+          <i class="fa-solid fa-xmark"></i><b class="p-5">No active Auction</b>
+        </div>
+        <div class="alert alert-success" role="alert">
+          <i class="fa-solid fa-check"></i><b class="p-5">Active Auction : </b>
+        </div>
+        <div class="alert alert-warning" role="alert">
+          <i class="fa-solid fa-pause"></i><b class="p-5">Auction Paused : </b>
+        </div>
+      -->
+      </div>
+      <div class="row" id="adminAction">
+      </div>
+    </div>
+  </div>
+</body>
+</html>
