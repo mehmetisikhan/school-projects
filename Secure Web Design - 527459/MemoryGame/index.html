@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<script>
+  var pictures = [];
+  
+  var firstpic=null;
+  var firstpicid=null;
+  var secondpic=null;
+  var secondpicid=null;
+  var counter = 0;
+  var colValue = 0;
+  var rowValue = 0;
+  var clickLock = false;
+
+  function createGame(row,col){
+    rowValue = parseInt(row.value);
+    colValue = parseInt(col.value);
+    if(rowValue >= 2 && colValue >= 2 && rowValue <= 5 && colValue <= 5){
+      if(((rowValue*colValue)>20) || ((rowValue*colValue)%2 != 0)){
+        alert("Max 20 cell acceptable (4 x 5 or 5 x 4) and the count of cell must be even !");
+      }else{
+        pictures = [];
+        firstpic=null;
+        firstpicid=null;
+        secondpic=null;
+        secondpicid=null;
+        counter = 0;
+        clickLock = false;
+        document.getElementById("counter").innerHTML = counter.toString();
+        //document.getElementById("gameSettings").innerHTML = "";
+        for(var i = 1 ; i <= (rowValue*colValue)/2 ; i++){
+          pictures.push(""+i+".jpg");
+          pictures.push(""+i+".jpg");
+        }
+        pictures.sort(() => (Math.random() > .5) ? 1 : -1); //https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+        console.log(pictures);
+        var gameTable = "<tr>";
+        for(var i = 0 ; i < (rowValue*colValue) ; i++){
+          if((i%(colValue) == 0) && (i != 0))
+            gameTable = gameTable + '</tr><tr>';
+          gameTable = gameTable + '<td><img onclick="show(\'v'+i+'\',pictures['+i+'])" id="v'+i+'" style="visibility: visible;" src="u.png" alt="Trulli" width="100" height="100"></td>';
+        }
+        document.getElementById("gameTable").innerHTML = gameTable;
+      }
+    }
+    
+  }
+  
+  function show(picid,target){
+    if(!clickLock){
+      clickLock = true;
+      document.getElementById("counter").innerHTML = counter.toString();
+      if(firstpic==null){
+        counter++;
+        document.getElementById(picid).src=target;
+        firstpic=target;
+        firstpicid=picid;
+        clickLock = false;
+      }else{
+        if(firstpicid == picid){
+          clickLock = false;
+          return;
+        }
+        counter++;
+        document.getElementById(picid).src=target;
+        secondpicid = picid;
+        secondpic = target;
+         setTimeout(function(){
+          if(secondpic == firstpic){
+            document.getElementById(secondpicid).style.visibility = "hidden";
+            document.getElementById(firstpicid).style.visibility = "hidden";
+          }else{
+            document.getElementById(secondpicid).src = "u.png";
+            document.getElementById(firstpicid).src = "u.png";
+          }
+          firstpic = null;
+          secondpic = null;
+          clickLock = false;
+        }, 1000);
+      }
+    }
+    
+  }
+
+</script>
+<body>
+
+
+<h2>HTML Image</h2>
+<div id="gameSettings">
+  <form onsubmit="return false" id="gameStartForm">
+    <input type="number" step="1" min="2" max="5" placeholder="Row" name="row" required >
+    <input type="number" step="1" min="2" max="5" placeholder="Col" name="col" required >
+    <button type="submit" onclick="createGame(row,col)">Start</button>
+  </form>
+</div>
+<table id="gameTable">
+</table>
+
+<div>
+  <h1>Counter : <a id="counter">0</a></h1>
+</div>
+
+</body>
+</html>
