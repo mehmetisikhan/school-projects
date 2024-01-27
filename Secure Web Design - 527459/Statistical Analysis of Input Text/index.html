@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>91220001906_HW_2</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<style>
+		.textinput{
+			width: 100%;
+		}
+	</style>
+	<script>
+		function generateReport(input){
+			if(input.value === null || input.value === undefined || input.value === ""){
+				alert("Please enter a text !");
+			}else{
+				let numberOfChar = (input.value).length;
+				let numberOfCharWoutSpace = (input.value).replaceAll(" ","").length;
+				let numberOfWords = (input.value).replaceAll(","," ");
+				numberOfWords = numberOfWords.replaceAll("-"," ");
+				numberOfWords = numberOfWords.replaceAll("."," ");
+				numberOfWords = numberOfWords.split(" ").length;
+
+				//https://www.geeksforgeeks.org/javascript-program-to-print-all-duplicate-characters-in-a-string/
+				let numberOfRepeatAlphaChar = {};
+				let numberOfRepeatAlphaCharTable = [];
+				let numberOfRepeatOnlyAlphaChar = {};
+				let numberOfRepeatOnlyAlphaCharTable = [];
+
+			    for (let i = 0; i < input.value.length; i++) { 
+			        let character = input.value[i].toLowerCase();
+			        if(character.match(/^[A-Za-z]+$/)){
+			        	numberOfRepeatOnlyAlphaChar[character] = (numberOfRepeatOnlyAlphaChar[character] || 0) + 1;
+			        }
+			        numberOfRepeatAlphaChar[character] = (numberOfRepeatAlphaChar[character] || 0) + 1; 
+			    } 
+			  
+			    for (let char in numberOfRepeatAlphaChar) { 
+			    	if(char == " "){
+			    		numberOfRepeatAlphaCharTable.push(["Space",numberOfRepeatAlphaChar[char]]);
+			    	}else{
+			    		numberOfRepeatAlphaCharTable.push([char,numberOfRepeatAlphaChar[char]]);
+			    	}
+			        
+			    }
+
+			    for (let char in numberOfRepeatOnlyAlphaChar) { 
+			        numberOfRepeatOnlyAlphaCharTable.push([char,numberOfRepeatOnlyAlphaChar[char]]);
+			    }
+				document.getElementById("nofChars").innerHTML = numberOfChar;
+				document.getElementById("nofCharsWoutSpace").innerHTML = numberOfCharWoutSpace;
+				document.getElementById("nofWords").innerHTML = numberOfWords;
+
+				numberOfRepeatAlphaCharTable.sort();
+				numberOfRepeatOnlyAlphaCharTable.sort();
+				numberOfRepeatAlphaCharTable = [['Char','Count']].concat(numberOfRepeatAlphaCharTable);
+				numberOfRepeatOnlyAlphaCharTable = [['Char','Count']].concat(numberOfRepeatOnlyAlphaCharTable);
+				// CHART
+				
+				google.charts.load('current', {'packages':['bar']});
+				google.charts.setOnLoadCallback(function(){
+					var data = new google.visualization.arrayToDataTable(numberOfRepeatAlphaCharTable);
+					var data2 = new google.visualization.arrayToDataTable(numberOfRepeatOnlyAlphaCharTable);
+					var options = {
+					  legend: { position: 'none' },
+					  bar: { groupWidth: "90%" }
+					};
+
+					var chart = new google.charts.Bar(document.getElementById('question5'));
+					// Convert the Classic options to Material options.
+					document.getElementById('question5').style.width = "100%";
+					document.getElementById('question5').style.height = "600px";
+					chart.draw(data, google.charts.Bar.convertOptions(options));
+
+					var chart2 = new google.charts.Bar(document.getElementById('question4'));
+					// Convert the Classic options to Material options.
+					document.getElementById('question4').style.width = "100%";
+					document.getElementById('question4').style.height = "600px";
+					chart2.draw(data2, google.charts.Bar.convertOptions(options));
+				});
+			}
+		}
+	</script>
+
+</head>
+<body>
+	<form class="container text-input-form">
+		<div class="col-md-12">
+			<br>
+			<label class="h3" for="textinput"> Enter your article : </label><br><br>
+			<textarea class="textinput" name="textinput" rows="10" style="min-height: 100px;"></textarea><br><br>
+			<button onclick="generateReport(textinput)" class="w-100 p-2" type="button"> Generate Report </button>
+		</div>
+	</form>
+	<br><br>
+	<section>
+		<div class="container">
+			<h1>REPORT</h1>
+		</div>
+		<div class="container">
+			<table class="table">
+				<thead>
+					<tr>
+				      <th scope="col">#</th>
+				      <th scope="col">Result</th>
+				    </tr>
+				</thead>
+				<tbody>
+					<tr>
+					  <th scope="row">1 - The Number of Characters : </th>
+					  <td id="nofChars">-</td>
+					</tr>
+					<tr>
+					  <th scope="row">2 - The number of Characters excluding white space : </th>
+					  <td id="nofCharsWoutSpace">-</td>
+					</tr>
+					<tr>
+					  <th scope="row">3 - The number of Words : </th>
+					  <td id="nofWords">-</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="p-2">
+				<h6>4 - The repeat time of each character (Only alphabetic characters): </h6>
+				<div id="question4"></div>
+				<h6>5 - The repeat time of each character : </h6>
+				<div id="question5"></div>
+			</div>
+			
+		</div>
+	</section>	
+</body>
+</html>
